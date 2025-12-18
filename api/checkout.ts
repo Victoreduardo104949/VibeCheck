@@ -2,14 +2,19 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 
+// Fix: Update apiVersion to match the expected type '2025-12-15.clover'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  // Fixed Stripe API version mismatch to match '2025-12-15.clover'
-  apiVersion: '2025-12-15.clover',
+  apiVersion: '2025-12-15.clover', 
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.error('STRIPE_SECRET_KEY is not defined in environment variables.');
+    return res.status(500).json({ error: 'Configuração do servidor incompleta (Chave API ausente).' });
   }
 
   try {
@@ -27,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           price_data: {
             currency: 'brl',
             product_data: {
-              name: 'VibeCheck Pro - Diagnóstico de Relacionamento',
+              name: 'VibeCheck Pro - Diagnóstico Individual',
               description: `Análise profunda da conversa: ${chatTitle}`,
               images: ['https://raw.githubusercontent.com/lucide-react/lucide/main/icons/heart.svg'],
             },
@@ -43,7 +48,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({ url: session.url });
   } catch (error: any) {
-    console.error('Payment Error:', error);
-    return res.status(500).json({ error: 'Erro ao processar transação.' });
+    console.error('Stripe Checkout Error:', error.message);
+    return res.status(500).json({ 
+      error: 'Erro ao gerar pagamento.', 
+      details: error.message 
+    });
   }
 }

@@ -2,8 +2,8 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 
+// Fix: Update apiVersion to match the expected type '2025-12-15.clover'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  // Fixed Stripe API version mismatch to match '2025-12-15.clover'
   apiVersion: '2025-12-15.clover',
 });
 
@@ -18,6 +18,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ paid: false, error: 'Session ID missing' });
   }
 
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return res.status(500).json({ paid: false, error: 'Chave API ausente.' });
+  }
+
   try {
     const session = await stripe.checkout.sessions.retrieve(session_id);
     
@@ -27,6 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     return res.status(200).json({ paid: false });
   } catch (error: any) {
-    return res.status(500).json({ paid: false, error: 'Erro de validação' });
+    console.error('Stripe Verification Error:', error.message);
+    return res.status(500).json({ paid: false, error: 'Erro de validação: ' + error.message });
   }
 }
