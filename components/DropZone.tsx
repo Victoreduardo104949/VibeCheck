@@ -137,7 +137,7 @@ const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded }) => {
             </button>
             <button onClick={() => setShowSecurity(true)} className="hover:text-white transition-colors flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span className="hidden xs:inline">Segurança</span>
+              <span className="hidden sm:inline">Segurança</span>
             </button>
         </div>
       </nav>
