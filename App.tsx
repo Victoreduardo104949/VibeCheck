@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChatData, Message, AnalysisResult, DatingAnalysisResult } from './types';
-import { parseWhatsAppChat } from './utils/parser';
-import { analyzeChat, analyzeDatingInsights } from './services/geminiService';
-import DropZone, { Logo } from './components/DropZone';
-import ChatBubble from './components/ChatBubble';
+import { ChatData, Message, AnalysisResult, DatingAnalysisResult } from './types.ts';
+import { parseWhatsAppChat } from './utils/parser.ts';
+import { analyzeChat, analyzeDatingInsights } from './services/geminiService.ts';
+import DropZone, { Logo } from './components/DropZone.tsx';
+import ChatBubble from './components/ChatBubble.tsx';
 import { 
   Search, MoreVertical, Phone, Video, Smile, Mic, Paperclip, 
   ArrowLeft, Bot, X, Heart, AlertTriangle, TrendingUp, Info, 
@@ -354,82 +354,81 @@ export default function App() {
             </div>
         )}
 
-        {/* MODAL: CHECKOUT */}
+        {/* MODAL: CHECKOUT (COMPACTO) */}
         {showCheckout && (
-            <div className="fixed inset-0 z-[200] bg-slate-950/90 backdrop-blur-2xl flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300 no-print">
-                <div className="bg-white w-full max-w-[500px] rounded-[48px] overflow-hidden shadow-[0_30px_100px_-20px_rgba(236,72,153,0.4)] animate-in zoom-in duration-500 flex flex-col max-h-[95vh] relative border border-white/20">
+            <div className="fixed inset-0 z-[200] bg-slate-950/90 backdrop-blur-2xl flex items-center justify-center p-4 animate-in fade-in duration-300 no-print">
+                <div className="bg-white w-full max-w-[420px] rounded-[32px] overflow-hidden shadow-[0_20px_80px_-15px_rgba(236,72,153,0.3)] animate-in zoom-in duration-500 flex flex-col max-h-[92vh] relative border border-white/10">
                      
-                     <div className="bg-[#0f172a] p-10 text-white text-center relative shrink-0 overflow-hidden">
+                     <div className="bg-[#0f172a] p-7 text-white text-center relative shrink-0 overflow-hidden">
                          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-pink-600/20 to-violet-600/20 z-0"></div>
-                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl"></div>
                          
                          <button 
-                            className="absolute top-6 right-6 p-2 text-white/50 hover:text-white transition-all z-20" 
+                            className="absolute top-5 right-5 p-1.5 text-white/50 hover:text-white transition-all z-20 bg-white/5 rounded-full" 
                             onClick={() => setShowCheckout(false)}
                          >
-                            <X className="w-6 h-6" />
+                            <X className="w-5 h-5" />
                          </button>
 
                          <div className="relative z-10 flex flex-col items-center">
-                            <div className="w-20 h-20 bg-gradient-to-tr from-pink-600 to-rose-400 rounded-3xl flex items-center justify-center mb-6 shadow-2xl rotate-3">
-                                <Crown className="w-10 h-10 text-white fill-current" />
+                            <div className="w-16 h-16 bg-gradient-to-tr from-pink-600 to-rose-400 rounded-2xl flex items-center justify-center mb-4 shadow-xl rotate-2">
+                                <Crown className="w-8 h-8 text-white fill-current" />
                             </div>
-                            <h2 className="text-2xl md:text-3xl font-black mb-2 tracking-tighter leading-tight">Laudo do Relacionamento</h2>
-                            <p className="text-pink-300 text-[10px] font-black uppercase tracking-[0.3em]">Diagnóstico Especializado de IA</p>
+                            <h2 className="text-xl md:text-2xl font-black mb-1 tracking-tighter leading-tight">Laudo do Relacionamento</h2>
+                            <p className="text-pink-300 text-[9px] font-black uppercase tracking-[0.25em]">Diagnóstico de IA Especializada</p>
                          </div>
                      </div>
 
-                     <div className="p-8 md:p-10 space-y-8 overflow-y-auto custom-scrollbar flex-1 min-h-0 bg-slate-50/30">
+                     <div className="p-6 md:p-7 space-y-6 overflow-y-auto custom-scrollbar flex-1 min-h-0 bg-slate-50/20">
                          
-                         <div className="grid grid-cols-1 gap-4">
+                         <div className="grid grid-cols-1 gap-3">
                              {[
-                                 { icon: <TrendingUp className="w-5 h-5" />, title: "Índice de Vácuo (Ghosting)", desc: "Quem está mais propenso a sumir da conversa?", color: "blue" },
-                                 { icon: <ShieldAlert className="w-5 h-5" />, title: "Flags de Reciprocidade", desc: "Identifica sinais de interesse real com provas.", color: "emerald" },
-                                 { icon: <ShieldAlert className="w-5 h-5" />, title: "Monitor de Red Flags", desc: "Detecta manipulação e desinteresse oculto.", color: "rose" },
-                                 { icon: <Target className="w-5 h-5" />, title: "Veredito da IA", desc: "Conselho direto sobre o futuro desta relação.", color: "amber" }
+                                 { icon: <TrendingUp className="w-4 h-4" />, title: "Ghosting Score", desc: "Quem está mais propenso a sumir?", color: "blue" },
+                                 { icon: <ShieldAlert className="w-4 h-4" />, title: "Reciprocidade", desc: "Sinais reais com provas do texto.", color: "emerald" },
+                                 { icon: <ShieldAlert className="w-4 h-4" />, title: "Red Flag Hunter", desc: "Detecta desinteresse e manipulação.", color: "rose" },
+                                 { icon: <Target className="w-4 h-4" />, title: "Veredito Final", desc: "Conselho sincero sobre o futuro.", color: "amber" }
                              ].map((item, i) => (
-                                 <div key={i} className="flex items-center gap-4 bg-white p-5 rounded-[28px] shadow-sm border border-slate-100 hover:border-pink-200 transition-all group">
-                                     <div className={`bg-${item.color}-50 p-3 rounded-2xl text-${item.color}-500 group-hover:scale-110 transition-transform`}>
+                                 <div key={i} className="flex items-center gap-3.5 bg-white p-4 rounded-[24px] shadow-sm border border-slate-100 hover:border-pink-200 transition-all group">
+                                     <div className={`bg-${item.color}-50 p-2.5 rounded-xl text-${item.color}-500 group-hover:scale-105 transition-transform`}>
                                          {item.icon}
                                      </div>
                                      <div className="flex flex-col">
-                                         <span className="text-slate-900 font-black text-sm">{item.title}</span>
-                                         <span className="text-slate-500 text-[11px] leading-tight font-medium">{item.desc}</span>
+                                         <span className="text-slate-900 font-black text-[13px]">{item.title}</span>
+                                         <span className="text-slate-500 text-[10px] leading-tight font-medium">{item.desc}</span>
                                      </div>
                                  </div>
                              ))}
                          </div>
 
-                         <div className="bg-[#0f172a] p-8 rounded-[40px] flex flex-col items-center justify-center text-white relative overflow-hidden group">
+                         <div className="bg-[#0f172a] p-5 rounded-[28px] flex flex-col items-center justify-center text-white relative overflow-hidden group shadow-lg">
                              <div className="absolute inset-0 bg-gradient-to-r from-pink-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                              
-                             <div className="flex items-center gap-3 mb-1">
-                                <span className="text-white/40 line-through text-sm font-bold">R$ 19,90</span>
-                                <span className="bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">OFFER</span>
+                             <div className="flex items-center gap-2 mb-0.5">
+                                <span className="text-white/30 line-through text-[11px] font-bold">R$ 19,90</span>
+                                <span className="bg-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest">OFERTA</span>
                              </div>
                              <div className="flex items-baseline gap-1">
-                                <span className="text-lg font-bold text-pink-300">R$</span>
-                                <span className="text-5xl font-black tracking-tighter">5,90</span>
+                                <span className="text-base font-bold text-pink-300">R$</span>
+                                <span className="text-4xl font-black tracking-tighter">5,90</span>
                              </div>
-                             <span className="text-[10px] text-white/50 font-black uppercase tracking-[0.2em] mt-2">Pagamento Único • Acesso Vitalício</span>
+                             <span className="text-[9px] text-white/40 font-black uppercase tracking-[0.2em] mt-1.5">Pagamento Único • Acesso Vitalício</span>
                          </div>
 
-                         <div className="space-y-4 pt-2">
+                         <div className="space-y-3.5 pt-1">
                              <button 
                                 onClick={startDatingAnalysis} 
-                                className="relative w-full py-7 bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 text-white font-black rounded-[32px] shadow-[0_20px_40px_-10px_rgba(236,72,153,0.5)] flex items-center justify-center gap-4 text-xl hover:scale-[1.02] active:scale-95 transition-all overflow-hidden group"
+                                className="relative w-full py-5 bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 text-white font-black rounded-[24px] shadow-[0_15px_30px_-8px_rgba(236,72,153,0.4)] flex items-center justify-center gap-3 text-lg hover:scale-[1.01] active:scale-95 transition-all overflow-hidden group"
                              >
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                                <Zap className="w-6 h-6 fill-current text-yellow-300" />
+                                <Zap className="w-5 h-5 fill-current text-yellow-300" />
                                 GERAR LAUDO COMPLETO
                              </button>
                              
-                             <div className="flex items-center justify-center gap-6 opacity-50 grayscale hover:grayscale-0 transition-all">
-                                <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-                                    <Shield className="w-3 h-3" /> Seguro
+                             <div className="flex items-center justify-center gap-5 opacity-40 grayscale hover:grayscale-0 transition-all">
+                                <div className="flex items-center gap-1.5 text-[8px] font-bold text-slate-500 uppercase tracking-widest">
+                                    <Shield className="w-2.5 h-2.5" /> Seguro
                                 </div>
-                                <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-                                    <Lock className="w-3 h-3" /> Privado
+                                <div className="flex items-center gap-1.5 text-[8px] font-bold text-slate-500 uppercase tracking-widest">
+                                    <Lock className="w-2.5 h-2.5" /> Privado
                                 </div>
                              </div>
                          </div>

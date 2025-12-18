@@ -1,4 +1,5 @@
-import { Message, ChatData, Attachment } from '../types';
+
+import { Message, ChatData, Attachment } from '../types.ts';
 
 const getFileType = (fileName: string): 'image' | 'video' | 'audio' | 'document' => {
   const ext = fileName.split('.').pop()?.toLowerCase();

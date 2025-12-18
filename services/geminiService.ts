@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Message, AnalysisResult, DatingAnalysisResult } from "../types";
+import { Message, AnalysisResult, DatingAnalysisResult } from "../types.ts";
 
 const parseJson = (text: string) => {
     try {
