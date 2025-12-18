@@ -43,15 +43,31 @@ export default function App() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [myAuthorName, setMyAuthorName] = useState<string>('');
 
-  // DETECTOR DE RETORNO DO PAGAMENTO (Vindo do Redirect do Servidor)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('pagamento') === 'confirmado') {
-      if (chatData && !datingAnalysis && !isDatingAnalyzing) {
-        startDatingAnalysis();
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
-      }
+    const sessionId = urlParams.get('session_id');
+
+    if (sessionId && chatData && !datingAnalysis && !isDatingAnalyzing) {
+      const verifyPayment = async () => {
+        setIsDatingAnalyzing(true);
+        try {
+          const response = await fetch(`/api/verify?session_id=${sessionId}`);
+          const data = await response.json();
+          
+          if (data.paid) {
+            startDatingAnalysis();
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+          } else {
+            alert("Pagamento ainda não processado. Por favor, aguarde a confirmação.");
+            setIsDatingAnalyzing(false);
+          }
+        } catch (e) {
+          console.error("Erro na verificação", e);
+          setIsDatingAnalyzing(false);
+        }
+      };
+      verifyPayment();
     }
   }, [chatData]);
 
@@ -94,8 +110,8 @@ export default function App() {
       const result = await analyzeChat(chatData.messages);
       setAnalysis(result);
       setShowAnalysis(true);
-    } catch (e) {
-      alert("Erro na análise. Tente novamente.");
+    } catch (e: any) {
+      alert("Erro na análise: " + (e.message || "Tente novamente mais tarde."));
     } finally {
       setIsAnalyzing(false);
     }
@@ -115,7 +131,6 @@ export default function App() {
     setIsCreatingSession(true);
     
     try {
-      // CHAMADA PARA O SEU NOVO BACKEND NO VERCEL
       const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -125,23 +140,19 @@ export default function App() {
       const data = await response.json();
 
       if (data.url) {
-        // Redireciona para a URL de checkout única gerada pelo backend
         window.location.href = data.url;
       } else {
-        throw new Error(data.error || "Erro ao criar sessão de pagamento");
+        throw new Error(data.error || "Erro ao gerar link de pagamento.");
       }
     } catch (e: any) {
-      alert("Erro ao iniciar pagamento: " + e.message);
+      alert("Erro ao processar: " + e.message);
     } finally {
       setIsCreatingSession(false);
     }
   };
 
   const verifyAndAccess = async () => {
-    setCheckoutStep('verifying');
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setShowCheckout(false);
-    startDatingAnalysis();
+    alert("O sistema está validando sua transação. Por favor, não feche a janela.");
   };
 
   const startDatingAnalysis = async () => {
@@ -149,10 +160,14 @@ export default function App() {
     setIsDatingAnalyzing(true);
     try {
       const result = await analyzeDatingInsights(chatData.messages);
-      setDatingAnalysis(result);
-      setShowDatingReport(true);
-    } catch (e) {
-      alert("Erro na análise premium.");
+      if (result) {
+          setDatingAnalysis(result);
+          setShowDatingReport(true);
+      } else {
+          throw new Error("Relatório não disponível.");
+      }
+    } catch (e: any) {
+      alert("Erro no processamento: " + (e.message || "Tente novamente."));
     } finally {
       setIsDatingAnalyzing(false);
     }
@@ -168,7 +183,7 @@ export default function App() {
       try { await navigator.share({ title: 'VibeCheck AI', text: shareText }); } catch (err) {}
     } else {
       navigator.clipboard.writeText(shareText);
-      alert("✅ Copiado!");
+      alert("✅ Link copiado!");
     }
   };
 
@@ -188,7 +203,6 @@ export default function App() {
 
         <div className="z-10 w-full h-full xl:w-[1600px] xl:h-[95vh] xl:my-auto xl:mx-auto bg-[#f0f2f5] flex shadow-2xl overflow-hidden relative">
             
-            {/* Sidebar (Desktop Only) */}
             <div className="w-[30%] hidden md:flex flex-col border-r border-[#d1d7db] bg-white no-print">
                 <div className="bg-[#f0f2f5] py-2.5 px-4 flex justify-between items-center h-[60px]">
                     <div className="flex items-center gap-3">
@@ -198,8 +212,12 @@ export default function App() {
                         <button onClick={resetToHome} className="p-2 rounded-full hover:bg-black/5 text-slate-500"><Home className="w-5 h-5" /></button>
                     </div>
                     <div className="flex gap-4 text-[#54656f]">
-                        <Bot className="w-6 h-6 cursor-pointer" onClick={handleAnalysis} />
-                        <Sparkles className="w-6 h-6 cursor-pointer text-pink-500" onClick={openCheckout} />
+                        <button onClick={handleAnalysis} title="Análise Grátis" className="hover:bg-black/5 p-1 rounded-full transition-colors outline-none">
+                            <Bot className="w-6 h-6 cursor-pointer" />
+                        </button>
+                        <button onClick={openCheckout} title="Diagnóstico Pro" className="hover:bg-black/5 p-1 rounded-full transition-colors outline-none">
+                            <Sparkles className="w-6 h-6 cursor-pointer text-pink-500" />
+                        </button>
                     </div>
                 </div>
 
@@ -220,26 +238,25 @@ export default function App() {
                                 <h3 className="text-[17px] text-[#111b21] font-semibold truncate">{chatData.title}</h3>
                                 <span className="text-[10px] text-pink-500 font-black">PRO</span>
                             </div>
-                            <p className="text-[12px] text-pink-600 font-medium truncate flex items-center gap-1"><Sparkles className="w-3 h-3" /> Laudo Disponível</p>
+                            <p className="text-[12px] text-pink-600 font-medium truncate flex items-center gap-1"><Sparkles className="w-3 h-3" /> Análise Disponível</p>
                         </div>
                      </div>
                      
                      <div className="p-6 mt-6 mx-4 bg-slate-900 rounded-[32px] text-white shadow-xl relative overflow-hidden group">
                         <div className="relative z-10 text-left">
                             <h4 className="font-bold text-lg mb-2 leading-tight">VibeCheck Pro</h4>
-                            <p className="text-[11px] text-slate-400 mb-6 leading-relaxed">Revele as intenções por trás de cada mensagem.</p>
+                            <p className="text-[11px] text-slate-400 mb-6 leading-relaxed">Analise o subtexto desta conversa específica agora.</p>
                             <button 
                                 onClick={openCheckout}
                                 className="w-full bg-gradient-to-r from-pink-500 to-rose-400 text-white text-[11px] font-black py-4 rounded-2xl shadow-lg uppercase tracking-widest hover:scale-105 transition-transform"
                             >
-                                LIBERAR POR R$ 5,90
+                                ANALISAR POR R$ 5,90
                             </button>
                         </div>
                      </div>
                 </div>
             </div>
 
-            {/* Main Chat Area */}
             <div className="flex-1 flex flex-col relative bg-[#efeae2] w-full overflow-hidden no-print">
                 <header className="bg-[#f0f2f5] min-h-[60px] md:h-[65px] px-4 py-2 flex items-center justify-between border-b border-[#d1d7db] z-20">
                     <div className="flex items-center min-w-0">
@@ -252,13 +269,17 @@ export default function App() {
                         <div className="flex flex-col justify-center min-w-0 text-left">
                             <h2 className="text-[#111b21] text-[15px] font-semibold truncate leading-tight">{chatData.title}</h2>
                             <span className="text-pink-600 text-[10px] md:text-[11px] font-black uppercase tracking-widest truncate">
-                                {datingAnalysis ? 'Análise Premium Concluída' : 'Aguardando Upgrade'}
+                                {datingAnalysis ? 'Análise Premium Concluída' : 'Aguardando Upgrade Individual'}
                             </span>
                         </div>
                     </div>
                     <div className="flex items-center gap-1 md:gap-4 text-[#54656f] shrink-0">
-                        <Bot className="w-6 h-6 cursor-pointer" onClick={handleAnalysis} />
-                        <Sparkles className="w-6 h-6 cursor-pointer text-pink-500" onClick={openCheckout} />
+                        <button onClick={handleAnalysis} title="Análise Rápida" className="hover:bg-black/5 p-1 rounded-full transition-colors outline-none">
+                            <Bot className="w-6 h-6 cursor-pointer" />
+                        </button>
+                        <button onClick={openCheckout} title="Diagnóstico Premium" className="hover:bg-black/5 p-1 rounded-full transition-colors outline-none">
+                            <Sparkles className="w-6 h-6 cursor-pointer text-pink-500" />
+                        </button>
                     </div>
                 </header>
 
@@ -273,8 +294,8 @@ export default function App() {
                         <Heart className="w-5 h-5 md:w-6 md:h-6 text-white fill-current" />
                       </div>
                       <div className="flex flex-col text-left">
-                        <span className="text-white font-black text-sm md:text-base leading-tight uppercase tracking-tight">VibeCheck Pro Ativado</span>
-                        <span className="text-pink-100 text-[10px] md:text-[11px] font-bold uppercase tracking-widest opacity-90">Diagnóstico Detalhado Ativo</span>
+                        <span className="text-white font-black text-sm md:text-base leading-tight uppercase tracking-tight">Liberar Diagnóstico Individual</span>
+                        <span className="text-pink-100 text-[10px] md:text-[11px] font-bold uppercase tracking-widest opacity-90">Análise profunda desta conversa</span>
                       </div>
                     </div>
                     <div className="bg-white text-pink-600 px-4 py-2 md:px-6 md:py-2.5 rounded-full font-black text-[11px] md:text-xs uppercase tracking-widest shadow-xl flex items-center gap-2 relative z-10">
@@ -300,7 +321,7 @@ export default function App() {
                 <footer className="bg-[#f0f2f5] min-h-[62px] px-4 py-2 flex items-center gap-2 md:gap-4 z-20 border-t border-slate-200 no-print">
                     <Smile className="w-6 h-6 md:w-7 md:h-7 text-[#54656f] shrink-0" />
                     <div className="flex-1 bg-white rounded-xl px-4 py-3 text-slate-400 text-[13px] md:text-sm truncate shadow-sm border border-slate-200/50">
-                        Conversa carregada. Clique em VibeCheck para analisar.
+                        Conversa carregada. Clique no ícone de IA para analisar.
                     </div>
                     <Mic className="w-6 h-6 md:w-7 md:h-7 text-[#54656f] shrink-0" />
                 </footer>
@@ -326,29 +347,29 @@ export default function App() {
             </div>
         )}
 
-        {/* MODAL CHECKOUT */}
+        {/* MODAL CHECKOUT - WHITE LABEL */}
         {showCheckout && (
             <div className="fixed inset-0 z-[500] bg-[#f8fafc] flex flex-col animate-in fade-in duration-500 overflow-y-auto custom-scrollbar">
                 <header className="bg-white border-b border-slate-200 p-4 md:px-8 flex items-center justify-between sticky top-0 z-50">
                     <div className="flex items-center gap-3">
                          <div className="bg-pink-500 p-2 rounded-xl text-white"><Heart className="w-5 h-5 fill-current" /></div>
-                         <h1 className="text-slate-900 font-black text-lg tracking-tighter uppercase">VibeCheck <span className="text-pink-500">Checkout</span></h1>
+                         <h1 className="text-slate-900 font-black text-lg tracking-tighter uppercase">VibeCheck <span className="text-pink-500">Upgrade</span></h1>
                     </div>
                     <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
                         <Lock className="w-3.5 h-3.5" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Seguro via Stripe</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Pagamento 100% Seguro</span>
                     </div>
                 </header>
 
                 <main className="flex-1 max-w-5xl mx-auto w-full p-4 md:p-12 flex flex-col lg:flex-row gap-12 text-left">
                     <div className="flex-1 space-y-8">
                         <div>
-                            <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-4 leading-tight">Desbloqueie o <span className="text-pink-600 underline underline-offset-4 decoration-4">Diagnóstico Pro</span></h2>
-                            <p className="text-slate-500 font-medium leading-relaxed italic">"A análise mais profunda do mercado. Descubra segundas intenções e sinais de ghosting em segundos."</p>
+                            <h2 className="text-3xl font-black text-slate-900 tracking-tighter mb-4 leading-tight">Desbloqueie este <span className="text-pink-600 underline underline-offset-4 decoration-4">Diagnóstico Único</span></h2>
+                            <p className="text-slate-500 font-medium leading-relaxed italic">"A análise mais profunda do mercado. Descubra segundas intenções e sinais de ghosting nesta conversa específica."</p>
                         </div>
 
                         <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6">
-                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">O QUE VOCÊ VAI RECEBER:</h3>
+                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">O QUE VOCÊ VAI RECEBER NESTA ANÁLISE:</h3>
                             <ul className="space-y-4">
                                 {[
                                     { title: "Ghosting Score", desc: "Quem está mais interessado? Métrica de tempo e iniciativa.", icon: <TrendingUp className="text-blue-500" /> },
@@ -375,14 +396,14 @@ export default function App() {
                                 <div className="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center p-8 text-center animate-in fade-in">
                                     <div className="w-16 h-16 border-4 border-slate-100 border-t-pink-500 rounded-full animate-spin mb-6"></div>
                                     <h3 className="text-xl font-black text-slate-900 tracking-tighter">
-                                        {isCreatingSession ? "Preparando Checkout" : "Validando Pagamento"}
+                                        {isCreatingSession ? "Iniciando Transação" : "Validando Acesso"}
                                     </h3>
                                     <p className="text-slate-500 text-xs font-medium">Não feche esta página...</p>
                                 </div>
                             )}
 
                             <div className="flex justify-between items-center">
-                                <span className="bg-slate-900 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Pagamento Único</span>
+                                <span className="bg-slate-900 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Análise Individual</span>
                                 <span className="text-3xl font-black text-pink-600 tracking-tighter">R$ 5,90</span>
                             </div>
 
@@ -390,68 +411,63 @@ export default function App() {
                                 {checkoutStep === 'selection' ? (
                                     <>
                                         <p className="text-xs text-slate-500 leading-relaxed text-center">
-                                            Clique abaixo para iniciar o pagamento via <b>Cartão ou Pix</b> no Stripe.
+                                            A liberação é imediata e válida apenas para a conversa <b>{chatData.title}</b>.
                                         </p>
                                         <button 
                                             onClick={handleStripePayment}
-                                            className="w-full py-5 bg-[#635bff] text-white font-black rounded-2xl shadow-xl hover:bg-[#5851e0] transition-all transform active:scale-95 flex items-center justify-center gap-3"
+                                            className="w-full py-5 bg-pink-600 text-white font-black rounded-2xl shadow-xl hover:bg-pink-700 transition-all transform active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
                                         >
-                                            PAGAR AGORA COM STRIPE
-                                            <ExternalLink className="w-5 h-5" />
+                                            ANALISAR AGORA (PIX/CARTÃO)
+                                            <ArrowRight className="w-5 h-5" />
                                         </button>
                                     </>
                                 ) : (
                                     <>
                                         <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl text-center">
                                             <p className="text-blue-800 text-xs font-bold leading-relaxed">
-                                                Conclua o pagamento na aba aberta. <br/> Ao finalizar, clique abaixo:
+                                                Aguardando a confirmação do pagamento...
                                             </p>
                                         </div>
-                                        <button 
-                                            onClick={verifyAndAccess}
-                                            className="w-full py-5 bg-emerald-500 text-white font-black rounded-2xl shadow-xl hover:bg-emerald-600 transition-all transform active:scale-95 flex items-center justify-center gap-3"
-                                        >
-                                            PAGAMENTO CONCLUÍDO
-                                            <BadgeCheck className="w-5 h-5" />
-                                        </button>
                                     </>
                                 )}
                             </div>
 
-                            <div className="pt-4 flex flex-col items-center gap-4">
-                                <div className="flex items-center justify-center gap-6 opacity-40 grayscale">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" className="h-4" alt="Stripe" />
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_Pix.png" className="h-4" alt="PIX" />
+                            <div className="pt-4 flex flex-col items-center gap-4 border-t border-slate-100">
+                                <div className="flex items-center justify-center gap-6 opacity-60">
+                                    <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                                        <QrCode className="w-4 h-4 text-emerald-500" /> PIX
+                                    </div>
+                                    <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                                        <CardIcon className="w-4 h-4 text-blue-500" /> CARTÃO
+                                    </div>
                                 </div>
-                                <div className="text-[10px] font-black text-emerald-500 italic flex items-center gap-2">
-                                    <ShieldCheck className="w-3 h-3" /> SEGURO E CRIPTOGRAFADO
+                                <div className="text-[10px] font-black text-emerald-500 italic flex items-center gap-2 uppercase tracking-widest">
+                                    <ShieldCheck className="w-3 h-3" /> Transação Protegida por SSL
                                 </div>
                             </div>
                         </div>
 
-                        <button onClick={() => setShowCheckout(false)} className="mt-6 w-full text-slate-400 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                            <ArrowLeft className="w-3.5 h-3.5" /> Cancelar e Voltar
+                        <button onClick={() => setShowCheckout(false)} className="mt-6 w-full text-slate-400 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:text-slate-600 transition-colors">
+                            <ArrowLeft className="w-3.5 h-3.5" /> Voltar para a Conversa
                         </button>
                     </div>
                 </main>
             </div>
         )}
 
-        {/* RELATÓRIO PREMIUM */}
         {showDatingReport && datingAnalysis && (
             <div id="printable-report" className="fixed inset-0 z-[250] bg-white flex flex-col animate-in fade-in duration-500 print:static print:block overflow-hidden">
                 <header className="bg-slate-900 p-4 md:px-12 text-white flex justify-between items-center shrink-0 z-30 shadow-xl no-print">
                     <button onClick={() => setShowDatingReport(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors active:scale-90"><ArrowLeft className="w-7 h-7" /></button>
                     <div className="flex flex-col items-center">
                         <Logo />
-                        <span className="text-[9px] font-black text-pink-500 tracking-[0.4em] uppercase mt-1">Laudo Premium VibeCheck</span>
+                        <span className="text-[9px] font-black text-pink-500 tracking-[0.4em] uppercase mt-1">Laudo Premium Individual</span>
                     </div>
                     <button onClick={resetToHome} className="p-2 text-slate-500 hover:text-white transition-colors active:scale-90"><Home className="w-6 h-6" /></button>
                 </header>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#f8fafc] print:overflow-visible print:bg-white text-left">
                     <div className="flex flex-col lg:flex-row min-h-full print:block">
-                        
                         <div className="w-full lg:w-[380px] bg-slate-900 p-6 md:p-10 text-white lg:h-auto lg:min-h-screen lg:sticky lg:top-0 shrink-0 z-20 print:w-full print:static print:min-h-0 print:mb-8 print:rounded-b-3xl">
                             <div className="space-y-8 md:space-y-10">
                                 <div>

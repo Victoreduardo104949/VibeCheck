@@ -3,7 +3,8 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-01-27-preview' as any,
+  // Fixed Stripe API version mismatch to match '2025-12-15.clover'
+  apiVersion: '2025-12-15.clover',
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -15,10 +16,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { chatTitle } = req.body;
     const protocol = req.headers['x-forwarded-proto'] || 'http';
     const host = req.headers['host'];
-    const successUrl = `${protocol}://${host}/?pagamento=confirmado`;
+    
+    const successUrl = `${protocol}://${host}/?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${protocol}://${host}/`;
 
-    // Criação da sessão de checkout profissional
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card', 'pix'],
       line_items: [
@@ -42,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({ url: session.url });
   } catch (error: any) {
-    console.error('Stripe Error:', error);
-    return res.status(500).json({ error: error.message });
+    console.error('Payment Error:', error);
+    return res.status(500).json({ error: 'Erro ao processar transação.' });
   }
 }
