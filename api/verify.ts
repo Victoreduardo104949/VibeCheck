@@ -2,36 +2,33 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
 
-// Fix: Update apiVersion to match the expected type '2025-12-15.clover'
+// Updated apiVersion to match the expected type '2025-12-15.clover'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-12-15.clover',
+  apiVersion: '2025-12-15.clover' as any,
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Método não permitido' });
   }
 
   const { session_id } = req.query;
 
   if (!session_id || typeof session_id !== 'string') {
-    return res.status(400).json({ paid: false, error: 'Session ID missing' });
-  }
-
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return res.status(500).json({ paid: false, error: 'Chave API ausente.' });
+    return res.status(400).json({ paid: false, error: 'ID da sessão ausente.' });
   }
 
   try {
     const session = await stripe.checkout.sessions.retrieve(session_id);
-    
-    if (session.payment_status === 'paid') {
-      return res.status(200).json({ paid: true });
-    }
-    
-    return res.status(200).json({ paid: false });
+    const isPaid = session.payment_status === 'paid' || session.status === 'complete';
+    return res.status(200).json({ paid: isPaid });
   } catch (error: any) {
-    console.error('Stripe Verification Error:', error.message);
-    return res.status(500).json({ paid: false, error: 'Erro de validação: ' + error.message });
+    return res.status(500).json({ 
+      paid: false, 
+      error: 'Erro ao validar', 
+      details: error.message 
+    });
   }
 }

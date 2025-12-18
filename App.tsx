@@ -142,17 +142,14 @@ export default function App() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        throw new Error(data.error || "Erro ao gerar link de pagamento.");
+        // Mostra o erro detalhado vindo do Stripe
+        throw new Error(data.details || data.error || "Erro ao gerar link de pagamento.");
       }
     } catch (e: any) {
-      alert("Erro ao processar: " + e.message);
+      alert("⚠️ ERRO DE TRANSAÇÃO: " + e.message);
     } finally {
       setIsCreatingSession(false);
     }
-  };
-
-  const verifyAndAccess = async () => {
-    alert("O sistema está validando sua transação. Por favor, não feche a janela.");
   };
 
   const startDatingAnalysis = async () => {
@@ -347,7 +344,7 @@ export default function App() {
             </div>
         )}
 
-        {/* MODAL CHECKOUT - WHITE LABEL */}
+        {/* MODAL CHECKOUT */}
         {showCheckout && (
             <div className="fixed inset-0 z-[500] bg-[#f8fafc] flex flex-col animate-in fade-in duration-500 overflow-y-auto custom-scrollbar">
                 <header className="bg-white border-b border-slate-200 p-4 md:px-8 flex items-center justify-between sticky top-0 z-50">
@@ -422,13 +419,11 @@ export default function App() {
                                         </button>
                                     </>
                                 ) : (
-                                    <>
-                                        <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl text-center">
-                                            <p className="text-blue-800 text-xs font-bold leading-relaxed">
-                                                Aguardando a confirmação do pagamento...
-                                            </p>
-                                        </div>
-                                    </>
+                                    <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl text-center">
+                                        <p className="text-blue-800 text-xs font-bold leading-relaxed">
+                                            Aguardando a confirmação do pagamento...
+                                        </p>
+                                    </div>
                                 )}
                             </div>
 
