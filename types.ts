@@ -39,8 +39,8 @@ export interface GreenFlag {
 
 export interface DatingAnalysisResult {
   ghostingScore: {
-    userA: { name: string; score: number; label: string };
-    userB: { name: string; score: number; label: string };
+    userA: { name: string; score: number; label: string; evidence?: string };
+    userB: { name: string; score: number; label: string; evidence?: string };
     description: string;
   };
   redFlags: RedFlag[];

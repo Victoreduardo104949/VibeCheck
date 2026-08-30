@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Message, AnalysisResult, DatingAnalysisResult } from "../types.ts";
+import { Message, AnalysisResult, DatingAnalysisResult, ChatData } from "../types.ts";
+import { computeMetrics, formatMetricsBlock } from "../utils/metrics.ts";
 
 const parseJson = (text: string) => {
     try {
@@ -57,10 +58,14 @@ export const analyzeDatingInsights = async (messages: Message[]): Promise<Dating
     if (!process.env.API_KEY) throw new Error("Chave da API (Gemini) não configurada.");
 
     const participants = Array.from(new Set(messages.filter(m => !m.isSystem).map(m => m.author)));
+    if (participants.length < 2) throw new Error("Conversa precisa de pelo menos 2 participantes para o diagnóstico Pro.");
+
     // Pegamos mais contexto para a análise premium
     const snippet = [...messages.slice(0, 40), ...messages.slice(-120)]
         .map(m => `[${m.author}]: ${m.content}`)
         .join('\n');
+
+    const metricsBlock = formatMetricsBlock(computeMetrics({ participants, messages, title: '' }));
 
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -76,11 +81,19 @@ CRITÉRIOS:
 5. Sentiment Trend: Evolução da conversa.
 6. AI Advice: Um conselho direto, sem rodeios, sobre o futuro dessa relação.
 
+${metricsBlock}
+
+INSTRUÇÕES DE FIDELIDADE:
+- Os DADOS MEDIDOS acima são a VERDADE ABSOLUTA da conversa. Derive os scores FIELMENTE deles e nunca os contradiga.
+- Use APENAS as citações fornecidas acima para os campos 'citation' (nunca invente trechos).
+- Substitua os nomes de perfil da conversa pelos nomes das pessoas nos scores.
+- Preencha 'evidence' de cada usuário com 1 frase factual curta baseada nos dados medidos (ex: "responde em média em 5min e inicia 3x mais conversas").
+
 IMPORTANTE: Responda APENAS com o JSON.`;
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-3-pro-preview',
+            model: 'gemini-3-flash-preview',
             contents: {
                 parts: [{ text: prompt + "\n\nCONVERSA:\n" + snippet }]
             },
@@ -97,18 +110,20 @@ IMPORTANTE: Responda APENAS com o JSON.`;
                                     properties: { 
                                         name: { type: Type.STRING }, 
                                         score: { type: Type.NUMBER }, 
-                                        label: { type: Type.STRING } 
+                                        label: { type: Type.STRING },
+                                        evidence: { type: Type.STRING }
                                     },
-                                    required: ["name", "score", "label"]
+                                    required: ["name", "score", "label", "evidence"]
                                 },
                                 userB: { 
                                     type: Type.OBJECT, 
                                     properties: { 
                                         name: { type: Type.STRING }, 
                                         score: { type: Type.NUMBER }, 
-                                        label: { type: Type.STRING } 
+                                        label: { type: Type.STRING },
+                                        evidence: { type: Type.STRING }
                                     },
-                                    required: ["name", "score", "label"]
+                                    required: ["name", "score", "label", "evidence"]
                                 },
                                 description: { type: Type.STRING }
                             },

@@ -118,6 +118,10 @@ export default function App() {
   };
 
   const openCheckout = () => {
+    if (import.meta.env.DEV) {
+      startDatingAnalysis();
+      return;
+    }
     setIsRedirectingToCheckout(true);
     setTimeout(() => {
       setIsRedirectingToCheckout(false);
@@ -492,6 +496,9 @@ export default function App() {
                                                 <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
                                                     <div className="bg-pink-500 h-full rounded-full transition-all duration-1000" style={{ width: `${u.score}%` }}></div>
                                                 </div>
+                                                {u.evidence && (
+                                                    <p className="text-[10px] text-slate-400 font-medium leading-relaxed mt-1.5 print:text-slate-500">{u.evidence}</p>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
