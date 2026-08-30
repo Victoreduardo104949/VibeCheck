@@ -174,6 +174,31 @@ const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded }) => {
                     ANALISAR CONVERSA
                     <ChevronRight className="w-5 h-5 opacity-50" />
                   </button>
+                  <button 
+                    onClick={() => {
+                      const sample = `10/08/2026 09:15 - Lucas: Bom dia! Tudo bem por aí?
+10/08/2026 09:16 - Mariana: Oi Lucas! Bom dia, tudo ótimo e você?
+10/08/2026 09:20 - Lucas: Tudo bem também! Pensando aqui se você topa aquele café mais tarde.
+10/08/2026 09:45 - Mariana: Hoje tá super corrido no trabalho, não sei se consigo...
+10/08/2026 10:00 - Lucas: Tranquilo, quando tiver um tempinho me avisa.
+10/08/2026 19:30 - Lucas: Conseguiu desocupar?
+10/08/2026 23:45 - Mariana: Oi, vi só agora! Cheguei super cansada em casa, acabei capotando haha
+11/08/2026 08:30 - Lucas: Imagino! Descansou bem?
+11/08/2026 14:10 - Mariana: Sim, hoje o dia promete ser longo de novo rs
+11/08/2026 14:15 - Lucas: Força aí! Qualquer coisa que precisar me chama.
+11/08/2026 21:00 - Lucas: E aí, o que vai fazer no fim de semana?
+12/08/2026 11:20 - Mariana: Ainda não pensei em nada, tô bem cansada essa semana.
+12/08/2026 11:25 - Lucas: Poxa, se quiser companhia pra relaxar e comer algo gostoso, tô por aqui!
+12/08/2026 17:00 - Mariana: Ok, qualquer coisa te aviso
+13/08/2026 10:00 - Lucas: Bom dia Mariana! Como foi seu sábado?
+14/08/2026 18:30 - Mariana: Oi, foi bom. E o seu?`;
+                      onFileLoaded(sample);
+                    }}
+                    className="w-full py-3.5 rounded-2xl bg-white/5 border border-white/10 text-pink-400 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+                  >
+                    <Sparkles className="w-4 h-4 text-pink-400" />
+                    Testar com Conversa Demo
+                  </button>
                   <button onClick={() => setShowTutorial(true)} className="flex items-center justify-center gap-2 mx-auto text-[10px] font-black text-slate-500 uppercase tracking-widest">
                     <Info className="w-4 h-4" />
                     Tutorial: Como utilizar o .zip
@@ -220,6 +245,32 @@ const DropZone: React.FC<DropZoneProps> = ({ onFileLoaded }) => {
                 >
                     <FileArchive className="w-6 h-6" />
                     SELECIONAR ARQUIVO
+                </button>
+
+                <button 
+                    onClick={() => {
+                      const sample = `10/08/2026 09:15 - Lucas: Bom dia! Tudo bem por aí?
+10/08/2026 09:16 - Mariana: Oi Lucas! Bom dia, tudo ótimo e você?
+10/08/2026 09:20 - Lucas: Tudo bem também! Pensando aqui se você topa aquele café mais tarde.
+10/08/2026 09:45 - Mariana: Hoje tá super corrido no trabalho, não sei se consigo...
+10/08/2026 10:00 - Lucas: Tranquilo, quando tiver um tempinho me avisa.
+10/08/2026 19:30 - Lucas: Conseguiu desocupar?
+10/08/2026 23:45 - Mariana: Oi, vi só agora! Cheguei super cansada em casa, acabei capotando haha
+11/08/2026 08:30 - Lucas: Imagino! Descansou bem?
+11/08/2026 14:10 - Mariana: Sim, hoje o dia promete ser longo de novo rs
+11/08/2026 14:15 - Lucas: Força aí! Qualquer coisa que precisar me chama.
+11/08/2026 21:00 - Lucas: E aí, o que vai fazer no fim de semana?
+12/08/2026 11:20 - Mariana: Ainda não pensei em nada, tô bem cansada essa semana.
+12/08/2026 11:25 - Lucas: Poxa, se quiser companhia pra relaxar e comer algo gostoso, tô por aqui!
+12/08/2026 17:00 - Mariana: Ok, qualquer coisa te aviso
+13/08/2026 10:00 - Lucas: Bom dia Mariana! Como foi seu sábado?
+14/08/2026 18:30 - Mariana: Oi, foi bom. E o seu?`;
+                      onFileLoaded(sample);
+                    }}
+                    className="w-full mt-3 py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-pink-400 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                    <Sparkles className="w-4 h-4 text-pink-400" />
+                    Testar com Conversa Demo
                 </button>
 
                 <div className="mt-8 md:mt-10 pt-8 md:pt-10 border-t border-white/5">
